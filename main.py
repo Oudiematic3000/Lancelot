@@ -8,9 +8,12 @@ from pathlib import Path
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
+from urllib.parse import quote
+
 
 load_dotenv()
 token = os.getenv('DISCORD_TOKEN')
+LAUNCHER_URL = os.getenv('LAUNCHER_URL')
 
 handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
 intents = discord.Intents.default()
@@ -105,39 +108,17 @@ async def see_knightlies(ctx):
     await ctx.send("**Tonight's Knightlies**\n" + "\n".join(lines))
 
 
-LAUNCHER_HTML = """<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><title>Knightlies Launcher</title></head>
-<body style="font-family:sans-serif;text-align:center;margin-top:80px">
-  <h1>Ready to start the knightlies?</h1>
-  <p>{count} tabs will open. Allow pop-ups if your browser asks.</p>
-  <button style="font-size:1.5em;padding:12px 32px" onclick="launch()">Open all</button>
-  <script>
-    const urls = {urls};
-    function launch() {{ urls.forEach(u => window.open(u, '_blank')); }}
-  </script>
-</body>
-</html>
-"""
-
-
 @bot.command(name='start')
 async def start_knightlies(ctx):
-    """n!start - sends a one-click launcher file"""
+    """n!start - sends a one-click launcher link"""
     knightlies = load_knightlies()
     if not knightlies:
         await ctx.send("No knightlies to start.")
         return
 
-    html = LAUNCHER_HTML.format(
-        count=len(knightlies),
-        urls=json.dumps([k.url for k in knightlies]),
-    )
-    file = discord.File(io.BytesIO(html.encode('utf-8')), filename='start_knightlies.html')
-    await ctx.send(
-        f"{ctx.author.mention} download this, open it, and click the button:",
-        file=file,
-    )
+    payload = quote(json.dumps([k.url for k in knightlies]), safe='')
+    link = f"{LAUNCHER_URL}#{payload}"
+    await ctx.send(f"{ctx.author.mention} click to open tonight's knightlies:\n<{link}>")
 
 
 bot.run(token, log_handler=handler, log_level=logging.DEBUG)

@@ -6,7 +6,7 @@
   <title>Knightlies Launcher</title>
 </head>
 <body style="font-family:sans-serif;text-align:center;margin-top:80px">
-  <h1>Ready to start the knightlies?</h1>
+  <h1>OH Yea</h1>
   <p id="info"></p>
   <button id="go" style="font-size:1.5em;padding:12px 32px">Open all</button>
   <script>
@@ -17,7 +17,7 @@
     urls = urls.filter(u => /^https?:\/\//i.test(u));
 
     document.getElementById('info').textContent =
-      urls.length ? urls.length + ' tabs will open. Allow pop-ups if asked.'
+      urls.length ? urls.length + ''
                   : 'No valid links found in this URL.';
 
     document.getElementById('go').onclick = () => {
