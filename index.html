@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Knightlies Launcher</title>
+</head>
+<body style="font-family:sans-serif;text-align:center;margin-top:80px">
+  <h1>Ready to start the knightlies?</h1>
+  <p id="info"></p>
+  <button id="go" style="font-size:1.5em;padding:12px 32px">Open all</button>
+  <script>
+    let urls = [];
+    try {
+      urls = JSON.parse(decodeURIComponent(location.hash.slice(1)));
+    } catch (e) {}
+    urls = urls.filter(u => /^https?:\/\//i.test(u));
+
+    document.getElementById('info').textContent =
+      urls.length ? urls.length + ' tabs will open. Allow pop-ups if asked.'
+                  : 'No valid links found in this URL.';
+
+    document.getElementById('go').onclick = () => {
+      urls.forEach(u => window.open(u, '_blank'));
+    };
+  </script>
+</body>
+</html>
