@@ -2,6 +2,79 @@
   {
     "name": "Crossword",
     "url": "https://www.washingtonpost.com/games/crossword/",
-    "order": 1
+    "order": 1,
+    "consistent": true
+  },
+  {
+    "name": "Crossword Spreadsheet",
+    "url": "https://docs.google.com/spreadsheets/d/1DDxyYOyw_0FenZlrvpmbZeDFkgfPk6P_KRLoPieDzEk/edit?gid=848780122#gid=848780122",
+    "order": 2,
+    "consistent": true
+  },
+  {
+    "name": "Minute Cryptic",
+    "url": "https://www.minutecryptic.com/",
+    "order": 3,
+    "consistent": true
+  },
+  {
+    "name": "Bandle",
+    "url": "https://bandle.app/menu",
+    "order": 4,
+    "consistent": false
+  },
+  {
+    "name": "Krillion",
+    "url": "https://krillion.io/",
+    "order": 5,
+    "consistent": true
+  },
+  {
+    "name": "Daily Orbs",
+    "url": "https://dailyorbs.com/",
+    "order": 6,
+    "consistent": false
+  },
+  {
+    "name": "Metazooa",
+    "url": "https://metazooa.com/",
+    "order": 7,
+    "consistent": false
+  },
+  {
+    "name": "Magnitudle",
+    "url": "https://magnitudle.com/size-it-up/pop-culture",
+    "order": 8,
+    "consistent": false
+  },
+  {
+    "name": "Globle",
+    "url": "https://globle-game.com/",
+    "order": 9,
+    "consistent": false
+  },
+  {
+    "name": "PowerScaledle",
+    "url": "https://powerscadle.com/",
+    "order": 10,
+    "consistent": false
+  },
+  {
+    "name": "Scrandle",
+    "url": "https://scrandle.com/",
+    "order": 11,
+    "consistent": false
+  },
+  {
+    "name": "Originle",
+    "url": "https://originle.io/",
+    "order": 12,
+    "consistent": false
+  },
+  {
+    "name": "Betweenle",
+    "url": "https://betweenle.com/",
+    "order": 13,
+    "consistent": false
   }
 ]
