@@ -1,5 +1,5 @@
 // ---------- Config ----------
-const DATA_URL = 'assets/RoundTableMessages.json';   
+const DATA_URL = 'assets/RoundTableMessages_filtered.json';   
 const ROUNDS = 10;                 
 const MSGS_PER_ROUND = 3;
 const START_POINTS = 100;           
