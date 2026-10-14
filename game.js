@@ -1,14 +1,14 @@
 // ---------- Config ----------
 const DATA_URL = 'assets/RoundTableMessages_filtered.json';
 const ROUNDS = 10;
-const MSGS_PER_ROUND = 3;                         // 1 shown at start, up to 2 more via hint
+const MSGS_PER_ROUND = 3;                         
 const START_POINTS = 100;
 const WRONG_COST = 20;
 const HINT_COST = { date: 10, msg: 10, colour: 15 };
 const MAX_WRONG = 5;
-const IMG_LOAD_TIMEOUT = 8000;                    // ms before an image counts as broken
+const IMG_LOAD_TIMEOUT = 8000;                    
 
-// ---------- Helpers ----------
+
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -19,7 +19,6 @@ let byAuthor = new Map();
 let queue = [], pending = null;
 let rounds = [], idx = 0, cur = null, results = [];
 
-// ---------- Data ----------
 async function init() {
   try {
     const raw = await (await fetch(DATA_URL)).json();
@@ -57,8 +56,7 @@ async function msgOk(m) {
   return ok;
 }
 
-// Builds one round: picks an author, then 3 of their messages whose images all load.
-// Authors that can't supply 3 working messages are skipped.
+
 async function buildRound(q) {
   while (q.length) {
     const id = q.pop();
@@ -90,16 +88,16 @@ async function loadRound() {
     return showEnd();
   }
   rounds[idx] = r; cur = r;
-  pending = idx < ROUNDS - 1 ? buildRound(queue) : null;   // prefetch next round while playing
+  pending = idx < ROUNDS - 1 ? buildRound(queue) : null;  
   showRound();
 }
 
-// ---------- Scoring ----------
+
 const potential = r => Math.max(0, START_POINTS - r.wrong * WRONG_COST
   - (r.date ? HINT_COST.date : 0) - (r.colour ? HINT_COST.colour : 0) - r.extra * HINT_COST.msg);
 const total = () => results.reduce((a, b) => a + b, 0);
 
-// ---------- Rendering ----------
+
 function renderContent(m) {
   let t = esc(m.content || '');
   t = t.replace(/&lt;(a?):(\w+):(\d+)&gt;/g, (_, an, name, id) =>
@@ -119,12 +117,12 @@ function renderContent(m) {
 
 const fmtDate = ts => new Date(ts).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 
-const msgHtml = m => `<div class="msg"><div class="when" style="display:${cur.date ? 'block' : 'none'}">${fmtDate(m.timestamp)}</div>${renderContent(m)}</div>`;
+const msgHtml = m => `<div class="msg"><div class="when">${fmtDate(m.timestamp)}</div>${renderContent(m)}</div>`;
 
 function hintHtml(r) {
   const left = MSGS_PER_ROUND - 1 - r.extra;
   const btn = (id, label, off) => `<button id="${id}" ${off ? 'disabled' : ''}>${label}</button>`;
-  let h = `<div class="hint" style="flex-wrap:wrap">`
+  let h = `<div class="hint hint-buttons">`
     + btn('hDate', r.date ? 'Date shown' : `Reveal date (−${HINT_COST.date})`, r.date || r.done)
     + btn('hMsg', left ? `Another message (−${HINT_COST.msg})` : 'No more messages', !left || r.done)
     + btn('hCol', r.colour ? 'Colour shown' : `Reveal colour (−${HINT_COST.colour})`, r.colour || r.done)
@@ -140,7 +138,7 @@ function showRound() {
   $('#bar').style.width = (idx / ROUNDS * 100) + '%';
   $('#app').className = '';
   $('#app').innerHTML = `
-    <div id="msgs">${cur.msgs.slice(0, 1 + cur.extra).map(msgHtml).join('')}</div>
+    <div id="msgs" class="${cur.date ? 'show-dates' : ''}">${cur.msgs.slice(0, 1 + cur.extra).map(msgHtml).join('')}</div>
     <div class="hints" id="hints"></div>
     <div id="play">
       <div class="search">
@@ -163,7 +161,7 @@ function showRound() {
 function refresh() {
   $('#hints').innerHTML = hintHtml(cur);
   const on = (id, fn) => { const b = $(id); if (b && !b.disabled) b.onclick = () => { fn(); refresh(); }; };
-  on('#hDate', () => { cur.date = true; document.querySelectorAll('#msgs .when').forEach(e => e.style.display = 'block'); });
+  on('#hDate', () => { cur.date = true; $('#msgs').classList.add('show-dates'); });
   on('#hMsg', () => { cur.extra++; $('#msgs').insertAdjacentHTML('beforeend', msgHtml(cur.msgs[cur.extra])); });
   on('#hCol', () => { cur.colour = true; });
   const cost = $('#cost'); if (cost) cost.textContent = `Worth ${potential(cur)} points · wrong guess −${WRONG_COST}`;
@@ -178,7 +176,7 @@ function renderList() {
     .sort((a, b) => a.name.localeCompare(b.name)).slice(0, 50);
   const el = $('#list');
   el.innerHTML = list.map(u => `<div data-id="${u.id}"><img src="${esc(u.avatar)}" alt="" loading="lazy"><span>${esc(u.name)} <small>@${esc(u.username)}</small></span></div>`).join('')
-    || '<div style="cursor:default">No matching users</div>';
+    || '<div class="empty">No matching users</div>';
   el.classList.add('open');
   el.querySelectorAll('div[data-id]').forEach(d => d.onmousedown = e => { e.preventDefault(); guess(d.dataset.id); });
 }
@@ -201,7 +199,7 @@ function finish(won) {
   const u = cur.answer, last = idx === ROUNDS - 1;
   $('#result').innerHTML = `<div class="reveal">
     <div>${won ? 'Correct!' : 'Out of guesses. It was:'}</div>
-    <div class="who"><img src="${esc(u.avatar)}" alt=""><span>${esc(u.name)} <small style="color:var(--dim)">@${esc(u.username)}</small></span></div>
+    <div class="who"><img src="${esc(u.avatar)}" alt=""><span>${esc(u.name)} <small class="handle">@${esc(u.username)}</small></span></div>
     <div class="pts ${won ? 'good' : 'bad'}">+${cur.points}</div>
     <button class="primary" id="next">${last ? 'See final score' : 'Next round'}</button></div>`;
   $('#stats').innerHTML = `Round ${idx + 1}/${ROUNDS} · Score <b>${total()}</b>`;
@@ -216,12 +214,12 @@ function showEnd() {
   $('#stats').innerHTML = 'Finished';
   $('#app').className = '';
   $('#app').innerHTML = `<div class="end">
-    <div>Final score</div><div class="big">${sc}<small style="font-size:1.2rem;color:var(--dim)"> / ${max}</small></div>
+    <div>Final score</div><div class="big">${sc}<small class="max"> / ${max}</small></div>
     <div class="rows">${rounds.slice(0, n).map((r, i) => `<div><span>${i + 1}. ${esc(r.answer.name)}</span><span>${results[i]} pts</span></div>`).join('')}</div>
     <button id="share">Copy result</button> <button class="primary" id="again">Play again</button></div>`;
   $('#again').onclick = startGame;
   $('#share').onclick = async e => {
-    try { await navigator.clipboard.writeText(`Knightle ${sc}/${max}\n${squares}`); e.target.textContent = 'Copied!'; }
+    try { await navigator.clipboard.writeText(`Knightle? ${sc}/${max}\n${squares}`); e.target.textContent = 'Copied!'; }
     catch { e.target.textContent = 'Copy failed'; }
   };
 }
