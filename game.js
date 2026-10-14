@@ -1,4 +1,4 @@
-// ---------- Config ----------
+
 const DATA_URL = 'assets/RoundTableMessages_filtered.json';   
 const ROUNDS = 10;                 
 const MSGS_PER_ROUND = 3;
@@ -15,7 +15,7 @@ const IMG_RE = /\.(png|jpe?g|gif|webp|avif|bmp)(\?|$)/i;
 let users = new Map();     
 let byAuthor = new Map();  
 let rounds = [], idx = 0, cur = null, results = [];
--
+
 async function init() {
   try {
     const raw = await (await fetch(DATA_URL)).json();
@@ -174,7 +174,7 @@ function showEnd() {
     <button id="share">Copy result</button> <button class="primary" id="again">Play again</button></div>`;
   $('#again').onclick = startGame;
   $('#share').onclick = async e => {
-    try { await navigator.clipboard.writeText(`Who said it? ${sc}/${max}\n${squares}`); e.target.textContent = 'Copied!'; }
+    try { await navigator.clipboard.writeText(`Knightle? ${sc}/${max}\n${squares}`); e.target.textContent = 'Copied!'; }
     catch { e.target.textContent = 'Copy failed'; }
   };
 }
