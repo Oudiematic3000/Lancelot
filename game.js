@@ -1,23 +1,21 @@
 // ---------- Config ----------
-const DATA_URL = 'messages.json';   // DiscordChatExporter JSON (object with "messages", or a plain array)
-const ROUNDS = 10;                  // rounds per game
+const DATA_URL = 'assets/RoundTableMessages.json';   
+const ROUNDS = 10;                 
 const MSGS_PER_ROUND = 3;
-const START_POINTS = 100;           // max points per round
-const WRONG_COST = 20;              // lost per incorrect guess
-const HINT_COST = [10, 15, 20];     // date, colour, role (revealed in this order)
-const MAX_WRONG = 5;                // round ends after this many wrong guesses
+const START_POINTS = 100;           
+const WRONG_COST = 20;              
+const HINT_COST = [10, 15, 20];     
+const MAX_WRONG = 5;                
 
-// ---------- Helpers ----------
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const IMG_RE = /\.(png|jpe?g|gif|webp|avif|bmp)(\?|$)/i;
 
-let users = new Map();     // id -> user info
-let byAuthor = new Map();  // id -> valid messages
+let users = new Map();     
+let byAuthor = new Map();  
 let rounds = [], idx = 0, cur = null, results = [];
-
-// ---------- Data ----------
+-
 async function init() {
   try {
     const raw = await (await fetch(DATA_URL)).json();
@@ -25,7 +23,7 @@ async function init() {
     for (const m of msgs) {
       const a = m.author;
       if (!a || a.isBot) continue;
-      users.set(a.id, { // later messages overwrite, so we keep the most recent nickname/colour/roles
+      users.set(a.id, { 
         id: a.id, name: a.nickname || a.name, username: a.name, color: a.color || null,
         roles: a.roles || [], avatar: a.avatarUrl
       });
@@ -50,11 +48,10 @@ function startGame() {
   showRound();
 }
 
-// ---------- Scoring ----------
 const potential = r => Math.max(0, START_POINTS - r.wrong * WRONG_COST - HINT_COST.slice(0, r.hints).reduce((a, b) => a + b, 0));
 const total = () => results.reduce((a, b) => a + b, 0);
 
-// ---------- Rendering ----------
+
 function renderContent(m) {
   let t = esc(m.content || '');
   t = t.replace(/&lt;(a?):(\w+):(\d+)&gt;/g, (_, an, name, id) =>
