@@ -1,24 +1,38 @@
 // ---------- Config ----------
 const DATA_URL = 'assets/RoundTableMessages_filtered.json';
 const ROUNDS = 10;
-const MSGS_PER_ROUND = 3;                         
+const MSGS_PER_ROUND = 3;                         // 1 shown at start, up to 2 more via hint
 const START_POINTS = 100;
 const WRONG_COST = 20;
 const HINT_COST = { date: 10, msg: 10, colour: 15 };
 const MAX_WRONG = 5;
-const IMG_LOAD_TIMEOUT = 8000;                    
+const IMG_LOAD_TIMEOUT = 8000;
 
 
+const ALT_GROUPS = [
+   ['571379658709401620', '1138850204003614762'], //Davey
+   ['1168945168393711717', '275011088234446859', '457842989394559007'], //Jayjay
+   ['354703660644827147','1229102691632812237',] //Shaun
+   ['255395648013074434','873243221042536478'] //Rustic
+   ['692712072601010238','1248245269150302213'] //Smidge
+];                    
+
+// ---------- Helpers ----------
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const CANON = new Map();   // any account id -> its group's main id
+for (const g of ALT_GROUPS) for (const id of g) CANON.set(String(id), String(g[0]));
+const canon = id => CANON.get(id) || id;
 const IMG_RE = /\.(png|jpe?g|gif|webp|avif|bmp)(\?|$)/i;
 
-let users = new Map();
+let users = new Map();   // person id (main account id) -> { id, name, username, avatar }
+let accts = new Map();   // every individual account id -> its own details (name, colour, avatar)
 let byAuthor = new Map();
 let queue = [], pending = null;
 let rounds = [], idx = 0, cur = null, results = [];
 
+// ---------- Data ----------
 async function init() {
   try {
     const raw = await (await fetch(DATA_URL)).json();
@@ -26,12 +40,17 @@ async function init() {
     for (const m of msgs) {
       const a = m.author;
       if (!a || a.isBot) continue;
-      users.set(a.id, {
-        id: a.id, name: a.nickname || a.name, username: a.name, color: a.color || null,
-        roles: a.roles || [], avatar: a.avatarUrl
-      });
+      accts.set(a.id, { id: a.id, name: a.nickname || a.name, username: a.name, color: a.color || null, avatar: a.avatarUrl });
+      const cid = canon(a.id);
       const ok = ['Default', 'Reply'].includes(m.type) && ((m.content || '').trim() || (m.attachments || []).length);
-      if (ok) (byAuthor.get(a.id) || byAuthor.set(a.id, []).get(a.id)).push(m);
+      if (ok) (byAuthor.get(cid) || byAuthor.set(cid, []).get(cid)).push(m);
+    }
+    // Merge alt accounts into one person
+    const members = new Map();
+    for (const acc of accts.values()) { const cid = canon(acc.id); (members.get(cid) || members.set(cid, []).get(cid)).push(acc); }
+    for (const [cid, list] of members) {
+      list.sort((x, y) => (x.id === cid ? -1 : y.id === cid ? 1 : 0));   // main account first
+      users.set(cid, { id: cid, name: list.map(x => x.name).join(' / '), username: list.map(x => x.username).join(' / @'), avatar: list[0].avatar });
     }
     startGame();
   } catch (e) {
@@ -56,7 +75,8 @@ async function msgOk(m) {
   return ok;
 }
 
-
+// Builds one round: picks an author, then 3 of their messages whose images all load.
+// Authors that can't supply 3 working messages are skipped.
 async function buildRound(q) {
   while (q.length) {
     const id = q.pop();
@@ -88,16 +108,16 @@ async function loadRound() {
     return showEnd();
   }
   rounds[idx] = r; cur = r;
-  pending = idx < ROUNDS - 1 ? buildRound(queue) : null;  
+  pending = idx < ROUNDS - 1 ? buildRound(queue) : null;   // prefetch next round while playing
   showRound();
 }
 
-
+// ---------- Scoring ----------
 const potential = r => Math.max(0, START_POINTS - r.wrong * WRONG_COST
   - (r.date ? HINT_COST.date : 0) - (r.colour ? HINT_COST.colour : 0) - r.extra * HINT_COST.msg);
 const total = () => results.reduce((a, b) => a + b, 0);
 
-
+// ---------- Rendering ----------
 function renderContent(m) {
   let t = esc(m.content || '');
   t = t.replace(/&lt;(a?):(\w+):(\d+)&gt;/g, (_, an, name, id) =>
@@ -128,8 +148,10 @@ function hintHtml(r) {
     + btn('hCol', r.colour ? 'Colour shown' : `Reveal colour (−${HINT_COST.colour})`, r.colour || r.done)
     + `</div>`;
   if (r.colour) {
-    const c = r.answer.color;
-    h += `<div class="hint on"><span class="k">Username colour</span><span>${c ? `<span class="swatch" style="background:${esc(c)}"></span>${esc(c)}` : 'Default (no colour)'}</span></div>`;
+    // colour of the account behind each message currently shown (alts may differ)
+    const cols = [...new Set(r.msgs.slice(0, 1 + r.extra).map(m => (accts.get(m.author.id) || {}).color || null))];
+    const one = c => c ? `<span class="swatch" style="background:${esc(c)}"></span>${esc(c)}` : 'Default (no colour)';
+    h += `<div class="hint on"><span class="k">Username colour</span><span>${cols.map(one).join(' · ')}</span></div>`;
   }
   return h;
 }
