@@ -76,5 +76,11 @@
     "url": "https://betweenle.com/",
     "order": 13,
     "consistent": false
+  },
+  {
+    "name": "NEETLE",
+    "url": "https://oudiematic3000.github.io/Lancelot/knightle",
+    "order": 14,
+    "consistent": true
   }
 ]
